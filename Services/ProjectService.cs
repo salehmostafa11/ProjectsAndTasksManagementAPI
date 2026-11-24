@@ -13,7 +13,7 @@ namespace Projects_And_Tasks_Management_WebAPI.Services;
 
 public class ProjectService(AppDbContext _context) : IProjectService
 {
-    public async Task<ProjectResponse> Create(CreateProjectRequest request, Guid currentUserId, CancellationToken ct = default)
+    public async Task<ProjectResponse> Create(Guid currentUserId, CreateProjectRequest request, CancellationToken ct = default)
     {
         // The current user's ID is extracted from the authenticated user's claims
         // in the controller and passed to the service.
@@ -102,7 +102,7 @@ public class ProjectService(AppDbContext _context) : IProjectService
         await _context.SaveChangesAsync(ct);
     }
 
-    public async Task<PagedResponse<ProjectResponse>> GetAllWithTasksPagedAsync(PaginationRequest request, CancellationToken ct = default)
+    public async Task<PagedResponse<ProjectResponse>> GetAllWithTasksPaged(PaginationRequest request, CancellationToken ct = default)
     {
         var query = _context.Projects.AsNoTracking();
         var projectCount = await query.CountAsync(ct);

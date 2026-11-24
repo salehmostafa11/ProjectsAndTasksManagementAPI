@@ -8,9 +8,9 @@ namespace Projects_And_Tasks_Management_WebAPI.IServices;
 
 public interface IProjectService
 {
-    Task<PagedResponse<ProjectResponse>> GetAllWithTasksPagedAsync(PaginationRequest request, CancellationToken ct = default);
+    Task<PagedResponse<ProjectResponse>> GetAllWithTasksPaged(PaginationRequest request, CancellationToken ct = default);
     Task<ProjectResponse> GetWithTasksById(Guid projectId, CancellationToken ct = default);
-    Task<ProjectResponse> Create (CreateProjectRequest request, Guid currentUserId, CancellationToken ct = default);
+    Task<ProjectResponse> Create ( Guid currentUserId, CreateProjectRequest request, CancellationToken ct = default);
     Task Delete (Guid projectId, Guid currentUserId, CancellationToken ct = default);
     Task Edit(Guid projectId, Guid currentUserId, UpdateProjectRequest request, CancellationToken ct = default);
     Task UpdateBudget(Guid projectId, Guid currentUserId, UpdateProjectBudgetRequest request, CancellationToken ct = default);

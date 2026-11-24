@@ -1,7 +1,7 @@
 using FluentValidation;
 using Projects_And_Tasks_Management_WebAPI.Requests.ProjectRequests;
 
-namespace Projects_And_Tasks_Management_WebAPI.Validators;
+namespace Projects_And_Tasks_Management_WebAPI.Validators.ProjectValidators;
 
 public class UpdateProjectRequestValidator : AbstractValidator<UpdateProjectRequest>
 {
