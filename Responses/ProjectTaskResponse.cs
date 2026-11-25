@@ -24,4 +24,7 @@ public class ProjectTaskResponse
         ProjectId = pt.ProjectId,
         AssignedUserId = pt.AssignedUserId
     };
+
+    private static readonly Func<ProjectTask, ProjectTaskResponse> _compiledProjection = Projection.Compile();
+    public static ProjectTaskResponse FromEntity(ProjectTask task) => _compiledProjection(task);
 }
