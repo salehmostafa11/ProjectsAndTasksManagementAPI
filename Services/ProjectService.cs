@@ -66,7 +66,7 @@ public class ProjectService(AppDbContext _context) : IProjectService
         if (request.ExpectedStartDate.HasValue)
         {
             if (request.ExpectedStartDate.Value.Date < project.ExpectedStartDate.Date)
-                throw new BussinessRuleException("Expected start date cannot be earlier than its current value.", StatusCodes.Status409Conflict);
+                throw new BussinessRuleException("Expected start date can't be earlier than its current value.", StatusCodes.Status409Conflict);
 
             project.ExpectedStartDate = request.ExpectedStartDate.Value;
         }

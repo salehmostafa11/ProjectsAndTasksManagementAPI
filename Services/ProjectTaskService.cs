@@ -60,9 +60,30 @@ public class ProjectTaskService(AppDbContext _context) : IProjectTaskService
         throw new NotImplementedException();
     }
 
-    public Task Edit(Guid taskId, Guid currentUserId, UpdateProjectTaskRequest request, CancellationToken ct = default)
+    public async Task Edit(Guid taskId, Guid currentUserId, UpdateProjectTaskRequest request, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var data = await _context.ProjectTasks
+                .Where(pt=> pt.Id == taskId)
+                .Select(t=> new {Task =t, t.Project.OwnerId, t.Project.ActualEndDate})
+                .FirstOrDefaultAsync(ct)
+                ?? throw new BussinessRuleException($"Task with id = \"{taskId}\" not found.", StatusCodes.Status404NotFound);
+        
+        if(data.OwnerId != currentUserId)
+            throw new BussinessRuleException("Only the project owner can edit the tasks.", StatusCodes.Status403Forbidden);
+        
+        if(data.ActualEndDate.HasValue)
+            throw new BussinessRuleException("Can't edit ended project tasks.", StatusCodes.Status409Conflict);
+        
+        if(data.Task.Status is ProjectTaskStatus.Cancelled or ProjectTaskStatus.Completed)
+            throw new BussinessRuleException("Can't edit completed or cancelled tasks.", StatusCodes.Status409Conflict);
+        
+        if(request.Name is not null)
+            data.Task.Name = request.Name;
+        
+        if(request.Description is not null)
+            data.Task.Description = request.Description;
+        
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task<ProjectTaskResponse> GetTaskById(Guid taskId, CancellationToken ct = default)
