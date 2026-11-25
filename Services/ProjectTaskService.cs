@@ -16,7 +16,7 @@ public class ProjectTaskService(AppDbContext _context) : IProjectTaskService
         throw new NotImplementedException();
     }
 
-    public Task Create(Guid projectId, Guid currentUserId, CreateProjectTaskRequest request, CancellationToken ct = default)
+    public Task<ProjectTaskResponse> Create(Guid projectId, Guid currentUserId, CreateProjectTaskRequest request, CancellationToken ct = default)
     {
         throw new NotImplementedException();
     }
@@ -31,9 +31,16 @@ public class ProjectTaskService(AppDbContext _context) : IProjectTaskService
         throw new NotImplementedException();
     }
 
-    public Task<ProjectTaskResponse> GetTaskById(Guid taskId, CancellationToken ct = default)
+    public async Task<ProjectTaskResponse> GetTaskById(Guid taskId, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var task = await _context.ProjectTasks
+                        .AsNoTracking()
+                        .Where(pt=> pt.Id == taskId)
+                        .Select(ProjectTaskResponse.Projection)
+                        .SingleOrDefaultAsync(ct)
+            ?? throw new BussinessRuleException($"Task with id = \"{taskId}\" not found.", StatusCodes.Status404NotFound);
+        
+        return task;
     }
 
     public async Task<PagedResponse<ProjectTaskResponse>> GetTasksByProjectId(Guid projectId, PaginationRequest request, CancellationToken ct = default)
@@ -50,18 +57,10 @@ public class ProjectTaskService(AppDbContext _context) : IProjectTaskService
         
         var tasks = await query
                     .OrderBy(t=> t.CreatedAt).ThenBy(t=> t.Id)
-                    .Skip((request.Page -1) * request.PageSize)
+                    .Skip((request.Page - 1) * request.PageSize)
                     .Take(request.PageSize)
-                    .Select(t=> new ProjectTaskResponse
-                    {
-                        Id = t.Id,
-                        Name = t.Name,
-                        Description = t.Description,
-                        Status = t.Status,
-                        CreatedAt = t.CreatedAt,
-                        ProjectId = t.ProjectId,
-                        AssignedUserId = t.AssignedUserId
-                    }).ToListAsync(ct);
+                    .Select(ProjectTaskResponse.Projection)
+                    .ToListAsync(ct);
                 
         return new PagedResponse<ProjectTaskResponse>
         {

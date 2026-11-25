@@ -61,7 +61,7 @@ public class ProjectService(AppDbContext _context) : IProjectService
             throw new BussinessRuleException("Only the project owner can update the project.", StatusCodes.Status403Forbidden);
 
         if (project.ActualEndDate.HasValue)
-            throw new BussinessRuleException("Can't modify an ended project", StatusCodes.Status409Conflict);
+            throw new BussinessRuleException("Can't modify an ended project.", StatusCodes.Status409Conflict);
 
         if (request.ExpectedStartDate.HasValue)
         {
@@ -112,30 +112,12 @@ public class ProjectService(AppDbContext _context) : IProjectService
             -reduces data transfer and memory consumption
             */
         var projects = await query
-                    .OrderBy(p => p.Id)
+                    .OrderBy(p => p.CreatedAt)
+                    .ThenBy(p=> p.Id)
                     .Skip((request.Page - 1) * request.PageSize)
                     .Take(request.PageSize)
-                    .Select(p => new ProjectResponse
-                    {
-                        Id = p.Id,
-                        Name = p.Name,
-                        Description = p.Description,
-                        Budget = p.Budget,
-                        StartDate = p.ExpectedStartDate,
-                        ActualEndDate = p.ActualEndDate,
-                        CreatedAt = p.CreatedAt,
-                        OwnerId = p.OwnerId,
-                        Tasks = p.Tasks.Select(t => new ProjectTaskResponse
-                        {
-                            Id = t.Id,
-                            Name = t.Name,
-                            Description = t.Description,
-                            Status = t.Status,
-                            CreatedAt = t.CreatedAt,
-                            ProjectId = t.ProjectId,
-                            AssignedUserId = t.AssignedUserId
-                        })
-                    }).ToListAsync(ct);
+                    .Select(ProjectResponse.Projection)
+                    .ToListAsync(ct);
 
         return new PagedResponse<ProjectResponse>
         {
@@ -152,29 +134,9 @@ public class ProjectService(AppDbContext _context) : IProjectService
         var project = await _context.Projects
                         .AsNoTracking()
                         .Where(p => p.Id == projectId)
-                        .Select(p => new ProjectResponse
-                        {
-                            Id = p.Id,
-                            Name = p.Name,
-                            Description = p.Description,
-                            Budget = p.Budget,
-                            StartDate = p.ExpectedStartDate,
-                            ActualEndDate = p.ActualEndDate,
-                            CreatedAt = p.CreatedAt,
-                            OwnerId = p.OwnerId,
-                            Tasks = p.Tasks.Select(t => new ProjectTaskResponse
-                            {
-                                Id = t.Id,
-                                Name = t.Name,
-                                Description = t.Description,
-                                Status = t.Status,
-                                CreatedAt = t.CreatedAt,
-                                ProjectId = t.ProjectId,
-                                AssignedUserId = t.AssignedUserId
-                            }).ToList()
-                        })
+                        .Select(ProjectResponse.Projection)
                         .SingleOrDefaultAsync(ct)
-                        ?? throw new BussinessRuleException($"Project with id: \"{projectId}\" not found.", StatusCodes.Status404NotFound);
+                        ?? throw new BussinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
 
         return project;
     }
@@ -190,7 +152,7 @@ public class ProjectService(AppDbContext _context) : IProjectService
             throw new BussinessRuleException("Only the project owner can update the project.", StatusCodes.Status403Forbidden);
         
         if(project.ActualEndDate.HasValue)
-            throw new BussinessRuleException("Can't modify an ended project", StatusCodes.Status409Conflict);
+            throw new BussinessRuleException("Can't modify an ended project.", StatusCodes.Status409Conflict);
         
         project.Budget = request.Budget;
 

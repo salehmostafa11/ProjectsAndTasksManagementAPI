@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Projects_And_Tasks_Management_WebAPI.Entities;
 using Projects_And_Tasks_Management_WebAPI.Enums;
 
@@ -13,17 +14,14 @@ public class ProjectTaskResponse
     public Guid ProjectId { get; set; }
     public Guid AssignedUserId { get; set; }
 
-    public static ProjectTaskResponse FromEntity(ProjectTask task)
+    public static readonly Expression<Func<ProjectTask, ProjectTaskResponse>> Projection = pt => new ProjectTaskResponse
     {
-        return new ProjectTaskResponse
-        {
-            Id = task.Id,
-            Name = task.Name,
-            Description = task.Description,
-            Status = task.Status,
-            CreatedAt = task.CreatedAt,
-            ProjectId = task.ProjectId,
-            AssignedUserId = task.AssignedUserId
-        };
-    }
+        Id = pt.Id,
+        Name = pt.Name,
+        Description = pt.Description,
+        Status = pt.Status,
+        CreatedAt = pt.CreatedAt,
+        ProjectId = pt.ProjectId,
+        AssignedUserId = pt.AssignedUserId
+    };
 }

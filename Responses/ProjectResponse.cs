@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Projects_And_Tasks_Management_WebAPI.Entities;
 
 namespace Projects_And_Tasks_Management_WebAPI.Responses;
@@ -14,19 +15,19 @@ public  class ProjectResponse
     public Guid OwnerId { get; set; }
     public IEnumerable<ProjectTaskResponse> Tasks { get; set; } = [];
 
-    public static ProjectResponse FromEntity(Project project)
+    public static readonly Expression<Func<Project, ProjectResponse>> Projection = p => new ProjectResponse
     {
-        return new ProjectResponse
-        {
-            Id = project.Id,
-            Name = project.Name,
-            Description = project.Description,
-            Budget = project.Budget,
-            StartDate= project.ExpectedStartDate,
-            ActualEndDate = project.ActualEndDate,
-            CreatedAt = project.CreatedAt,
-            OwnerId = project.OwnerId,
-            Tasks = project.Tasks.Select(pt=> ProjectTaskResponse.FromEntity(pt)).ToList()
-        };
-    }
+        Id = p.Id,
+        Name = p.Name,
+        Description = p.Description,
+        Budget = p.Budget,
+        StartDate= p.ExpectedStartDate,
+        ActualEndDate = p.ActualEndDate,
+        CreatedAt = p.CreatedAt,
+        OwnerId = p.OwnerId,
+        Tasks = p.Tasks.AsQueryable().Select(ProjectTaskResponse.Projection).ToList()
+    };
+    private static readonly Func<Project, ProjectResponse> _compiledProjection = Projection.Compile();
+    public static ProjectResponse FromEntity(Project project) => _compiledProjection(project);
+
 }

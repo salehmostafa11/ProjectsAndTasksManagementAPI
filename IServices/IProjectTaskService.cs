@@ -9,7 +9,7 @@ public interface IProjectTaskService
 {
     Task<PagedResponse<ProjectTaskResponse>> GetTasksByProjectId(Guid projectId, PaginationRequest request, CancellationToken ct = default);
     Task<ProjectTaskResponse> GetTaskById(Guid taskId, CancellationToken ct = default);
-    Task Create(Guid projectId, Guid currentUserId, CreateProjectTaskRequest request, CancellationToken ct = default);
+    Task<ProjectTaskResponse> Create(Guid projectId, Guid currentUserId, CreateProjectTaskRequest request, CancellationToken ct = default);
     Task Delete(Guid taskId, Guid currentUserId, CancellationToken ct = default);
     Task Edit(Guid taskId, Guid currentUserId, UpdateProjectTaskRequest request, CancellationToken ct = default);
     Task UpdateStatus (Guid taskId, Guid currentUserId, UpdateProjectTaskStatusRequest request, CancellationToken ct = default);
