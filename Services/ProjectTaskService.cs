@@ -159,8 +159,24 @@ public class ProjectTaskService(AppDbContext _context) : IProjectTaskService
         };
     }
 
-    public Task UpdateStatus(Guid taskId, Guid currentUserId, UpdateProjectTaskStatusRequest request, CancellationToken ct = default)
+    public async Task UpdateStatus(Guid taskId, Guid currentUserId, UpdateProjectTaskStatusRequest request, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var data = await _context.ProjectTasks
+                    .Where(pt=> pt.Id == taskId)
+                    .Select(pt => new {Task = pt, pt.Project.OwnerId, pt.Project.ActualEndDate})
+                    .FirstOrDefaultAsync(ct)
+                    ?? throw new BussinessRuleException($"Task with id = \"{taskId}\" not found.", StatusCodes.Status404NotFound);
+        
+        if(data.OwnerId != currentUserId && data.Task.AssignedUserId != currentUserId)
+            throw new BussinessRuleException("Only the project owner or assigned user can update the task status.", StatusCodes.Status403Forbidden);
+        
+        if(data.ActualEndDate.HasValue)
+            throw new BussinessRuleException("Can't update ended project task.", StatusCodes.Status409Conflict);
+        
+        if(data.Task.Status is ProjectTaskStatus.Cancelled or ProjectTaskStatus.Completed)
+            throw new BussinessRuleException("Can't update completed or cancelled task status.", StatusCodes.Status409Conflict);
+        
+        data.Task.Status = request.Status!.Value;
+        await _context.SaveChangesAsync(ct);
     }
 }
