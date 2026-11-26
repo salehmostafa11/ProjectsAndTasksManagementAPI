@@ -55,9 +55,25 @@ public class ProjectTaskService(AppDbContext _context) : IProjectTaskService
         return ProjectTaskResponse.FromEntity(task);
     }
 
-    public Task Delete(Guid taskId, Guid currentUserId, CancellationToken ct = default)
+    public async Task Delete(Guid taskId, Guid currentUserId, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var data = await _context.ProjectTasks
+                .Where(pt=> pt.Id == taskId)
+                .Select(pt=> new{Task = pt, pt.Project.ActualEndDate, pt.Project.OwnerId })
+                .FirstOrDefaultAsync(ct)
+                ?? throw new BussinessRuleException($"Task with id = \"{taskId}\" not found.", StatusCodes.Status404NotFound);
+
+        if(currentUserId != data.OwnerId)
+            throw new BussinessRuleException("Only the project owner can delete the tasks.", StatusCodes.Status403Forbidden);
+        
+        if(data.ActualEndDate.HasValue)
+            throw new BussinessRuleException("Can't delete ended project task.", StatusCodes.Status409Conflict);
+        
+        if(data.Task.Status is not ( ProjectTaskStatus.Completed or ProjectTaskStatus.Cancelled))
+            throw new BussinessRuleException("Can't delete a task unless it is completed or cancelled.", StatusCodes.Status409Conflict);
+        
+        _context.ProjectTasks.Remove(data.Task);
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task Edit(Guid taskId, Guid currentUserId, UpdateProjectTaskRequest request, CancellationToken ct = default)
