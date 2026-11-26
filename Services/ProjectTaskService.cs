@@ -13,9 +13,26 @@ namespace Projects_And_Tasks_Management_WebAPI.Services;
 
 public class ProjectTaskService(AppDbContext _context) : IProjectTaskService
 {
-    public Task AssignTaskToUser(Guid taskId, Guid currentUserId, AssignProjectTaskToAssigneeRequest request, CancellationToken ct = default)
+    public async Task AssignTaskToUser(Guid taskId, Guid currentUserId, AssignProjectTaskToAssigneeRequest request, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var data = await _context.ProjectTasks
+                .Where(pt=> pt.Id == taskId)
+                .Select(pt=> new{Task = pt, pt.Project.ActualEndDate, pt.Project.OwnerId })
+                .FirstOrDefaultAsync(ct)
+                ?? throw new BussinessRuleException($"Task with id = \"{taskId}\" not found.", StatusCodes.Status404NotFound);
+
+        if(currentUserId != data.OwnerId)
+            throw new BussinessRuleException("Only the project owner can assign tasks to users.", StatusCodes.Status403Forbidden);
+        
+        if(data.ActualEndDate.HasValue)
+            throw new BussinessRuleException("Can't assign ended project task to any user.", StatusCodes.Status409Conflict);
+        
+        if(data.Task.Status is ProjectTaskStatus.Completed or ProjectTaskStatus.Cancelled)
+            throw new BussinessRuleException("Can't assign a task to user while it is completed or cancelled.", StatusCodes.Status409Conflict);
+        
+        //TODO(identity): verify that request.AssigneeId belongs to an existing user.
+        data.Task.AssignedUserId = request.AssigneeId;
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task<ProjectTaskResponse> Create(Guid projectId, Guid currentUserId, CreateProjectTaskRequest request, CancellationToken ct = default)
