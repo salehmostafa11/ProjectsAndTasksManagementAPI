@@ -22,11 +22,12 @@ namespace Projects_And_Tasks_Management_WebAPI.Data.Migrations
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ExpectedStartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ActualEndDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    OwenrId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    OwnerId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Projects", x => x.Id);
+                    table.CheckConstraint("CK_Projects_ExpectedStartDate_FutureOrToday", "date([ExpectedStartDate]) >= CURRENT_DATE");
                 });
 
             migrationBuilder.CreateTable(

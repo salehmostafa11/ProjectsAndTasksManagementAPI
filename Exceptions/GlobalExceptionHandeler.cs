@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Projects_And_Tasks_Management_WebAPI.Exceptions;
 
-public class GlobalexceptionHandeler(IProblemDetailsService problemDetailsService) 
+public class GlobalExceptionHandeler(IProblemDetailsService problemDetailsService,
+                                        ILogger<GlobalExceptionHandeler> logger) 
             : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync( 
@@ -17,9 +18,13 @@ public class GlobalexceptionHandeler(IProblemDetailsService problemDetailsServic
         var (statusCode, detail) = exception switch
         {
             ValidationException => (StatusCodes.Status400BadRequest, exception.Message),
-            BussinessRuleException br=> (br.StatusCode, br.Message),
+            BusinessRuleException br=> (br.StatusCode, br.Message),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
+
+        if((statusCode == StatusCodes.Status500InternalServerError) && exception is not OperationCanceledException)
+            logger.LogError(exception, "Unhandled exception while processing {Path}", httpContext.Request.Path);
+        
 
         httpContext.Response.StatusCode = statusCode;
 
@@ -30,8 +35,8 @@ public class GlobalexceptionHandeler(IProblemDetailsService problemDetailsServic
             ProblemDetails = new ProblemDetails
             {
                 Type = null,
-                Title = "Error has occurred",
-                Detail = detail
+                Detail = detail,
+                Status = statusCode
             }
         });
     }

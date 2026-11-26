@@ -16,7 +16,7 @@ public static class DependencyInjection
     {
         services.AddDatabase(configuration);
         services.AddControllersToApp();
-        services.AddExceptionHandiling();
+        services.AddExceptionHandling();
         services.AddFluentValidation();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IProjectTaskService, ProjectTaskService>();
@@ -46,10 +46,10 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddExceptionHandiling(this IServiceCollection services)
+    public static IServiceCollection AddExceptionHandling(this IServiceCollection services)
     {
         services.AddProblemDetails();
-        services.AddExceptionHandler<GlobalexceptionHandeler>();
+        services.AddExceptionHandler<GlobalExceptionHandeler>();
         return services;
     }
 

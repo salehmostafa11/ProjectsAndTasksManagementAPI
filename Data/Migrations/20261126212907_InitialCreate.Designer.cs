@@ -11,7 +11,7 @@ using Projects_And_Tasks_Management_WebAPI.Data;
 namespace Projects_And_Tasks_Management_WebAPI.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261013122416_InitialCreate")]
+    [Migration("20261126212907_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Projects_And_Tasks_Management_WebAPI.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
-            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.Entities.Project", b =>
+            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -47,15 +47,18 @@ namespace Projects_And_Tasks_Management_WebAPI.Data.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("OwenrId")
+                    b.Property<Guid>("OwnerId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Projects_ExpectedStartDate_FutureOrToday", "date([ExpectedStartDate]) >= CURRENT_DATE");
+                        });
                 });
 
-            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.Entities.ProjectTask", b =>
+            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.ProjectTask", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -90,9 +93,9 @@ namespace Projects_And_Tasks_Management_WebAPI.Data.Migrations
                     b.ToTable("ProjectTasks", (string)null);
                 });
 
-            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.Entities.ProjectTask", b =>
+            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.ProjectTask", b =>
                 {
-                    b.HasOne("Projects_And_Tasks_Management_WebAPI.Entities.Entities.Project", "Project")
+                    b.HasOne("Projects_And_Tasks_Management_WebAPI.Entities.Project", "Project")
                         .WithMany("Tasks")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -101,7 +104,7 @@ namespace Projects_And_Tasks_Management_WebAPI.Data.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.Entities.Project", b =>
+            modelBuilder.Entity("Projects_And_Tasks_Management_WebAPI.Entities.Project", b =>
                 {
                     b.Navigation("Tasks");
                 });

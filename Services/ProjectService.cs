@@ -37,16 +37,16 @@ public class ProjectService(AppDbContext _context) : IProjectService
     public async Task Delete(Guid projectId, Guid currentUserId, CancellationToken ct = default)
     {
         var project = await _context.Projects.Include(p=> p.Tasks).FirstOrDefaultAsync(p=> p.Id == projectId, ct)
-            ?? throw new BussinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
+            ?? throw new BusinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
         
         if (project.OwnerId != currentUserId)
-            throw new BussinessRuleException("Only the project owner can delete the project.", StatusCodes.Status403Forbidden);
+            throw new BusinessRuleException("Only the project owner can delete the project.", StatusCodes.Status403Forbidden);
         
         if (project.ActualEndDate.HasValue)
-            throw new BussinessRuleException("Can't delete an ended project.", StatusCodes.Status409Conflict);
+            throw new BusinessRuleException("Can't delete an ended project.", StatusCodes.Status409Conflict);
         
         if(!project.Tasks.All(t=> t.Status == ProjectTaskStatus.Completed || t.Status == ProjectTaskStatus.Cancelled))
-            throw new BussinessRuleException("Can't delete project with active tasks.", StatusCodes.Status409Conflict);
+            throw new BusinessRuleException("Can't delete project with active tasks.", StatusCodes.Status409Conflict);
         
         _context.Projects.Remove(project);
         await _context.SaveChangesAsync(ct);
@@ -55,18 +55,18 @@ public class ProjectService(AppDbContext _context) : IProjectService
     public async Task Edit(Guid projectId, Guid currentUserId, UpdateProjectRequest request, CancellationToken ct = default)
     {
         var project = await _context.Projects.FindAsync(new object[]{projectId}, ct)
-        ?? throw new BussinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
+        ?? throw new BusinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
 
         if (project.OwnerId != currentUserId)
-            throw new BussinessRuleException("Only the project owner can update the project.", StatusCodes.Status403Forbidden);
+            throw new BusinessRuleException("Only the project owner can update the project.", StatusCodes.Status403Forbidden);
 
         if (project.ActualEndDate.HasValue)
-            throw new BussinessRuleException("Can't modify an ended project.", StatusCodes.Status409Conflict);
+            throw new BusinessRuleException("Can't modify an ended project.", StatusCodes.Status409Conflict);
 
         if (request.ExpectedStartDate.HasValue)
         {
             if (request.ExpectedStartDate.Value.Date < project.ExpectedStartDate.Date)
-                throw new BussinessRuleException("Expected start date can't be earlier than its current value.", StatusCodes.Status409Conflict);
+                throw new BusinessRuleException("Expected start date can't be earlier than its current value.", StatusCodes.Status409Conflict);
 
             project.ExpectedStartDate = request.ExpectedStartDate.Value;
         }
@@ -84,19 +84,19 @@ public class ProjectService(AppDbContext _context) : IProjectService
     public async Task EndProject(Guid projectId, Guid currentUserId, CancellationToken ct = default)
     {
         var project = await _context.Projects.Include(p=>p.Tasks).FirstOrDefaultAsync(p=> p.Id == projectId, ct)
-        ?? throw new BussinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
+        ?? throw new BusinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
 
         if (project.OwnerId != currentUserId)
-            throw new BussinessRuleException("Only the project owner can end the project.", StatusCodes.Status403Forbidden);
+            throw new BusinessRuleException("Only the project owner can end the project.", StatusCodes.Status403Forbidden);
 
         if (project.ActualEndDate.HasValue)
-            throw new BussinessRuleException("Can't end an ended project.", StatusCodes.Status409Conflict);
+            throw new BusinessRuleException("Can't end an ended project.", StatusCodes.Status409Conflict);
         
         if(!project.Tasks.Any())
-            throw new BussinessRuleException("Can't end a project with no tasks.", StatusCodes.Status409Conflict);
+            throw new BusinessRuleException("Can't end a project with no tasks.", StatusCodes.Status409Conflict);
         
         if(!project.Tasks.All(t=> t.Status is ProjectTaskStatus.Completed or ProjectTaskStatus.Cancelled))
-            throw new BussinessRuleException("Can't end project with active tasks.", StatusCodes.Status409Conflict);
+            throw new BusinessRuleException("Can't end project with active tasks.", StatusCodes.Status409Conflict);
         
         project.ActualEndDate = DateTime.UtcNow;
         await _context.SaveChangesAsync(ct);
@@ -136,7 +136,7 @@ public class ProjectService(AppDbContext _context) : IProjectService
                         .Where(p => p.Id == projectId)
                         .Select(ProjectResponse.Projection)
                         .SingleOrDefaultAsync(ct)
-                        ?? throw new BussinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
+                        ?? throw new BusinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
 
         return project;
     }
@@ -146,13 +146,13 @@ public class ProjectService(AppDbContext _context) : IProjectService
         var project = await _context.Projects.FindAsync(new object[]{projectId}, ct);
 
         if(project is null)
-            throw new BussinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
+            throw new BusinessRuleException($"Project with id = \"{projectId}\" not found.", StatusCodes.Status404NotFound);
         
         if(currentUserId != project.OwnerId)
-            throw new BussinessRuleException("Only the project owner can update the project.", StatusCodes.Status403Forbidden);
+            throw new BusinessRuleException("Only the project owner can update the project.", StatusCodes.Status403Forbidden);
         
         if(project.ActualEndDate.HasValue)
-            throw new BussinessRuleException("Can't modify an ended project.", StatusCodes.Status409Conflict);
+            throw new BusinessRuleException("Can't modify an ended project.", StatusCodes.Status409Conflict);
         
         project.Budget = request.Budget;
 
