@@ -13,12 +13,15 @@ public class GlobalexceptionHandeler(IProblemDetailsService problemDetailsServic
         Exception exception,
         CancellationToken cancellationToken)
     {
-        httpContext.Response.StatusCode = exception switch
+
+        var (statusCode, detail) = exception switch
         {
-            ValidationException => StatusCodes.Status400BadRequest,
-            BussinessRuleException br=> br.StatusCode,
-            _ => StatusCodes.Status500InternalServerError
+            ValidationException => (StatusCodes.Status400BadRequest, exception.Message),
+            BussinessRuleException br=> (br.StatusCode, br.Message),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
+
+        httpContext.Response.StatusCode = statusCode;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
@@ -26,9 +29,9 @@ public class GlobalexceptionHandeler(IProblemDetailsService problemDetailsServic
             Exception = exception,
             ProblemDetails = new ProblemDetails
             {
-                Type = exception.GetType().Name,
-                Title = "Error has occured",
-                Detail = exception.Message
+                Type = null,
+                Title = "Error has occurred",
+                Detail = detail
             }
         });
     }

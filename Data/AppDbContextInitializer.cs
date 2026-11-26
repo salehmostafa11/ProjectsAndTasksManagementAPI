@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Projects_And_Tasks_Management_WebAPI.Entities;
 
 namespace Projects_And_Tasks_Management_WebAPI.Data;
@@ -6,7 +7,7 @@ public static class AppDbContextInitializer
 {
     public static async Task InitializeAsync(AppDbContext context)
     {
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
 
         if(context.Projects.Any()) return;
 

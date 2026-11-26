@@ -4,7 +4,9 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Projects_And_Tasks_Management_WebAPI.Data;
 using Projects_And_Tasks_Management_WebAPI.Exceptions;
+using Projects_And_Tasks_Management_WebAPI.IServices;
 using Projects_And_Tasks_Management_WebAPI.Requests.ProjectRequests;
+using Projects_And_Tasks_Management_WebAPI.Services;
 
 namespace Projects_And_Tasks_Management_WebAPI;
 
@@ -16,7 +18,8 @@ public static class DependencyInjection
         services.AddControllersToApp();
         services.AddExceptionHandiling();
         services.AddFluentValidation();
-
+        services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<IProjectTaskService, ProjectTaskService>();
         return services;
     }
 
@@ -45,6 +48,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddExceptionHandiling(this IServiceCollection services)
     {
+        services.AddProblemDetails();
         services.AddExceptionHandler<GlobalexceptionHandeler>();
         return services;
     }
