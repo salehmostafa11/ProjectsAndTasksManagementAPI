@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Projects_And_Tasks_Management_WebAPI.Entities;
 
 namespace Projects_And_Tasks_Management_WebAPI.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> contextOptions): DbContext(contextOptions)
+public class AppDbContext(DbContextOptions<AppDbContext> contextOptions): 
+            IdentityDbContext<IdentityUser<Guid>, IdentityRole<Guid>, Guid>(contextOptions)
 {
-    public DbSet<Entities.Project> Projects => Set<Entities.Project>();
+    public DbSet<Project> Projects => Set<Project>();
     public DbSet<ProjectTask> ProjectTasks => Set<ProjectTask>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

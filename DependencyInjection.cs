@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Projects_And_Tasks_Management_WebAPI.Data;
 using Projects_And_Tasks_Management_WebAPI.Exceptions;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         services.AddFluentValidation();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IProjectTaskService, ProjectTaskService>();
+        services.AddIdentityServices();
         return services;
     }
 
@@ -49,7 +51,7 @@ public static class DependencyInjection
     public static IServiceCollection AddExceptionHandling(this IServiceCollection services)
     {
         services.AddProblemDetails();
-        services.AddExceptionHandler<GlobalExceptionHandeler>();
+        services.AddExceptionHandler<GlobalExceptionHandler>();
         return services;
     }
 
@@ -57,6 +59,17 @@ public static class DependencyInjection
     {
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<CreateProjectRequest>();
+        return services;
+    }
+    
+    public static IServiceCollection AddIdentityServices(this IServiceCollection services)
+    {
+        services.AddIdentityCore<IdentityUser<Guid>>(options =>
+        {
+            options.User.RequireUniqueEmail = true;
+            options.Password.RequiredLength = 8;
+        }).AddEntityFrameworkStores<AppDbContext>();
+
         return services;
     }
 }

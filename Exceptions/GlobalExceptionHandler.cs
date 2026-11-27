@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Projects_And_Tasks_Management_WebAPI.Exceptions;
 
-public class GlobalExceptionHandeler(IProblemDetailsService problemDetailsService,
-                                        ILogger<GlobalExceptionHandeler> logger) 
+public class GlobalExceptionHandler(IProblemDetailsService problemDetailsService,
+                                        ILogger<GlobalExceptionHandler> logger) 
             : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync( 
